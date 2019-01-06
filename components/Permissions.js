@@ -2,6 +2,7 @@ import { Query } from 'react-apollo';
 import gql from 'graphql-tag';
 import Error from './ErrorMessage';
 import Table from './styles/Table';
+import CoolButton from './styles/SickButton';
 
 const possiblePermissions = [
   'ADMIN',
@@ -71,6 +72,9 @@ class User extends React.Component {
             </label>
           </td>
         ))}
+        <td>
+          <CoolButton>Update</CoolButton>
+        </td>
       </tr>
     );
   }
