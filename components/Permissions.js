@@ -96,6 +96,7 @@ class UserPermissions extends React.Component {
           <td key={permission}>
             <label htmlFor={`${user.id}-permission-${permission}`}>
               <input
+                id={`${user.id}-permission-${permission}`} //label's for attribute matches ID, so can click the label to tick the box
                 type='checkbox'
                 checked={this.state.permissions.includes(permission)} // If it includes current permission we are looping over
                 value={permission}
