@@ -9,6 +9,20 @@ import calcTotalPrice from '../lib/calcTotalPrice';
 import Error from './ErrorMessage';
 import User, { CURRENT_USER_QUERY } from './User';
 
+const CREATE_ORDER_MUTATION = gql`
+  mutation createOrder($token: String!) {
+    createOrder(token: $token) {
+      id
+      charge
+      total
+      items {
+        id
+        title
+      }
+    }
+  }
+`;
+
 function calcTotalItems(cart) {
   return cart.reduce((total, cartItem) => total + cartItem.quantity, 0);
 }
@@ -18,9 +32,17 @@ class TakeMyMoney extends Component {
   //   prop: PropTypes
   // };
 
-  onToken = res => {
+  onToken = async (res, createOrder) => {
     console.log('ON TOKEN CALLED');
     console.log(res.id);
+    const order = await createOrder({
+      variables: {
+        token: res.id
+      }
+    }).catch(err => {
+      alert(err.message);
+    });
+    console.log(order);
   };
 
   render() {
@@ -29,20 +51,29 @@ class TakeMyMoney extends Component {
         {({ data: { me } }) => {
           const totalItems = calcTotalItems(me.cart);
           return (
-            <StripeCheckout
-              amount={calcTotalPrice(me.cart)}
-              name='Sick Fits'
-              description={`Order of ${totalItems} item${
-                totalItems === 1 ? '' : 's'
-              }`}
-              image={me.cart[0].item && me.cart[0].item.image}
-              stripeKey='pk_test_r9EXLDbFMtr1Pu2rZ6waR6qX'
-              currency='GBP'
-              email={me.email}
-              token={res => this.onToken(res)}
+            <Mutation
+              mutation={CREATE_ORDER_MUTATION}
+              refetchQueries={[{ query: CURRENT_USER_QUERY }]}
             >
-              {this.props.children}
-            </StripeCheckout>
+              {createOrder => (
+                <StripeCheckout
+                  amount={calcTotalPrice(me.cart)}
+                  name='Sick Fits'
+                  description={`Order of ${totalItems} item${
+                    totalItems === 1 ? '' : 's'
+                  }`}
+                  image={
+                    me.cart.length && me.cart[0].item && me.cart[0].item.image
+                  }
+                  stripeKey='pk_test_r9EXLDbFMtr1Pu2rZ6waR6qX'
+                  currency='GBP'
+                  email={me.email}
+                  token={res => this.onToken(res, createOrder)}
+                >
+                  {this.props.children}
+                </StripeCheckout>
+              )}
+            </Mutation>
           );
         }}
       </User>
